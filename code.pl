@@ -17,7 +17,7 @@ courses(Result) :-
 %Predicate that returns all possible orders of k elements.
 k_permutation(0,_,[]).
 k_permutation(K,L1,[X|T2]) :-
-    K > 0,
-    K1 is K - 1,
-    delete(X,L1,L2),
-    k_permutation(K1,L2,T2).
+	K > 0,
+	K1 is K - 1,
+	select(X,L1,L2),
+	k_permutation(K1,L2,T2).
