@@ -37,5 +37,36 @@ divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
 %Predicate schedule
 schedule(A, B, C) :-
     permutations_list(Permutations),
-	nl,
+    nl,
     divide_list(Permutations, A, B, C).
+
+%Predicate that turns a list with one element to a variable.
+%Fails if list has more than one element.
+list_to_var([X],X).
+
+%Auxiliary predicate that checks if student S is attending all lesson in week W.
+%The predicate divides the list with the lessons to 3 sublists with one element each
+%and then turns the list to variables.
+%In the end checks if student attends all lessons in the week.
+check_student(S,W) :-
+	divide_list(W,L1,L2,L3),
+	list_to_var(L1,E1),
+	list_to_var(L2,E2),
+	list_to_var(L3,E3),
+	attends(S,E1),
+	attends(S,E2),
+	attends(S,E3).
+
+%Auxiliary predicate that counts the number E of students that are dissatisfied with week W.
+%Computes the number of student that attending all lessons in given week.
+check_week(W,E) :-
+	findall(S, (check_student(S,W)),Students),
+	length(Students,E).
+
+%Predicate that computes the error in given schedule A,B,C.
+%Computes the total number of students that attend more than two lessons in a week.
+schedule_errors(A,B,C,E) :-
+	check_week(A,E1),
+	check_week(B,E2),
+	check_week(C,E3),
+	E is E1 + E2 + E3.
