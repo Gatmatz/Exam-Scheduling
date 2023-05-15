@@ -1,7 +1,7 @@
 %Open data file with facts.
 ?-consult('attends.pl').
 
-%Predicate that removes duplcate elements from a list.
+%Predicate that removes duplicate elements from a list.
 remove_duplicates([],[]).
 remove_duplicates([H|T],Result) :-
 	member(H,T),
