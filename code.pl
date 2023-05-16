@@ -66,7 +66,18 @@ check_week(W,E) :-
 %Predicate that computes the error in given schedule A,B,C.
 %Computes the total number of students that attend more than two lessons in a week.
 schedule_errors(A,B,C,E) :-
+    schedule(A,B,C),
 	check_week(A,E1),
 	check_week(B,E2),
 	check_week(C,E3),
 	E is E1 + E2 + E3.
+
+%Predicate to find the minimal schedule errors
+minimal_schedule_errors(A, B, C, E) :-
+    setof(Error-A-B-C, schedule_errors(A, B, C, Error), List),
+    List=[E-A-B-C|_].
+
+    
+
+
+
