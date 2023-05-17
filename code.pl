@@ -37,7 +37,6 @@ divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
 %Predicate schedule
 schedule(A, B, C) :-
     permutations_list(Permutations),
-    nl,
     divide_list(Permutations, A, B, C).
 
 %Predicate that turns a list with one element to a variable.
@@ -72,10 +71,18 @@ schedule_errors(A,B,C,E) :-
 	check_week(C,E3),
 	E is E1 + E2 + E3.
 
-%Predicate to find the minimal schedule errors
-minimal_schedule_errors(A, B, C, E) :-
+%Predicate to find the minimal error of all schedules
+minimal_error(E) :-
     setof(Error-A-B-C, schedule_errors(A, B, C, Error), List),
     List=[E-A-B-C|_].
+
+%Predicate that finds the schedules with minimal error
+minimal_schedule_errors(A, B, C, E) :-
+    minimal_error(E),
+    schedule_errors(A, B, C, E).
+
+
+
 
     
 
