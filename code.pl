@@ -1,18 +1,8 @@
 %Open data file with facts.
 ?-consult('attends.pl').
 
-%Predicate that removes duplicate elements from a list.
-remove_duplicates([],[]).
-remove_duplicates([H|T],Result) :-
-	member(H,T),
-	remove_duplicates(T,Result), !.
-remove_duplicates([H|T],[H|Result]) :-
-	remove_duplicates(T,Result).
-
-%Predicate that creates a list "Result" with all the separate exam courses.
-courses(Result) :-
-	findall(X, attends(_,X),L),
-	remove_duplicates(L,Result).
+courses(Courses) :-
+	setof(Course, S^attends(S,Course),Courses).
 
 %Predicate that returns all possible orders of k elements.
 k_permutation(0,_,[]).
@@ -41,7 +31,7 @@ schedule(A, B, C) :-
 
 %Predicate that turns a list with one element to a variable.
 %Fails if list has more than one element.
-list_to_var([X],X).
+list_to_var([H],H).
 
 %Auxiliary predicate that checks if student S is attending all lesson in week W.
 %The predicate divides the list with the lessons to 3 sublists with one element each
@@ -81,6 +71,24 @@ minimal_schedule_errors(A, B, C, E) :-
     minimal_error(E),
     schedule_errors(A, B, C, E).
 
+%Predicate that finds the minimum possible error E through minimal_schedule_errors predicate.
+find_min_error(E) :-
+	minimal_schedule_errors(_,_,_,E),!.
+
+%Predicate that finds the maximum possible score between exams that have the minimum error.
+find_max_score(S) :-
+	find_min_error(E),
+	setof(S,A^B^C^(minimal_schedule_errors(A,B,C,E),score_schedule(A,B,C,S)),Scores),
+	reverse(Scores,[S|_]).
+
+%Final predicate that calculates the exam schedule that has the minimum error and the maximum score.
+%First, it finds the minimum possible error and maximum score and then finds the schedules that have
+%that minimum error and maximum score.
+maximum_score_schedule(A,B,C,E,S) :-
+	find_min_error(E),
+	find_max_score(S),
+	minimal_schedule_errors(A,B,C,E),
+	score_schedule(A,B,C,S).
 
 
 
