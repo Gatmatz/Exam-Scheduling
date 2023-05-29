@@ -24,6 +24,13 @@ divide_list([X,Y],[X],[Y],[]).
 divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
     divide_list(L,L1,L2,L3).
 
+%Predicate that splits a list of permutations into 2 lists
+divide_list2([],[],[]).
+divide_list2([X],[X],[]).
+divide_list2([X,Y],[X],[Y]).
+divide_list2([X,Y|L],[X|L1],[Y|L2]) :-
+    divide_list2(L,L1,L2).
+
 %Predicate schedule
 schedule(A, B, C) :-
     permutations_list(Permutations),
@@ -90,6 +97,76 @@ maximum_score_schedule(A,B,C,E,S) :-
 	minimal_schedule_errors(A,B,C,E),
 	score_schedule(A,B,C,S).
 
+%Auxiliary predicate that checks which lessons student S is attending in a week with 3 lessons and calculates the score.
+%First it finds all the students that attend lesson in X days with the help of findall , and then it calculates the score based on some criterias.
+score_calculator(A,B,C,SCORE):-
+	findall(S,(attends(S,A),attends(S,B),not(attends(S,C))),Students0),			% Monday-Wednesday +1.
+	length(Students0,E0),
+
+	findall(S,(attends(S,C),attends(S,B),not(attends(S,A))),Students1),			% Wednesday-Friday +1.
+	length(Students1,E1),
+
+	findall(S,(attends(S,A),attends(S,C),not(attends(S,B))),Students2),			% Monday-Friday +3.
+	length(Students2,E2),
+
+	findall(S,(attends(S,A),attends(S,B),attends(S,C)),Students3),				% Monday-Wednesday-Friday -7.
+	length(Students3,E3),
+
+	findall(S,(not(attends(S,A)),not(attends(S,B)),not(attends(S,C))),Students4),		% None 0.
+	length(Students4,E4),
+
+	findall(S,(attends(S,A),not(attends(S,B)),not(attends(S,C))),Students5),		% Monday +7.
+	length(Students5,E5),
+
+	findall(S,(attends(S,B),not(attends(S,A)),not(attends(S,C))),Students6),		% Wednesday +7.
+	length(Students6,E6),
+
+	findall(S,(attends(S,C),not(attends(S,A)),not(attends(S,B))),Students7),		% Friday +7.
+	length(Students7,E7),
+
+
+	SCORE is E0+E1+(E2*3)-(7*E3)+0*E4+(E5+E6+E7)*7.
+
+%Auxiliary predicate that checks which lessons student S is attending in a week with 2 lessons and calculates the score.
+score_calculator2(A,B,SCORE):-
+	findall(S,(attends(S,A),attends(S,B)),Students),	%Monday-Wednesday +1
+	length(Students,E),
+
+	findall(S,(attends(S,A),not(attends(S,B))),Students1),	%Monday +7
+	length(Students1,E1),
+
+	findall(S,(attends(S,B),not(attends(S,A))),Students2),	%Friday +7
+	length(Students2,E2),
+
+	SCORE is E+(E1+E2)*7.
+
+
+%Auxiliary predicate that divides the list with the lessons to 3 sublists with one element each
+%and then turns the list to variables.
+week_score(A,E):-
+	divide_list(A,A1,A2,A3),
+	list_to_var(A1,AA1),
+	list_to_var(A2,AA2),
+	list_to_var(A3,AA3),
+	score_calculator(AA1,AA2,AA3,E).
+
+
+%Auxiliary predicate that divides the list with the lessons to 2 sublists with one element each
+%and then turns the list to variables.
+week_score2(A,E):-
+	divide_list2(A,A1,A2),
+	list_to_var(A1,AA1),
+	list_to_var(A2,AA2),
+	score_calculator2(AA1,AA2,E).
+
+
+%Predicate that calculates the schedule score based on the lessons that student attends.
+%First it calculates the scores for each week and then adds them up.
+score_schedule(A,B,C,S) :-
+	week_score(A,E1),
+	week_score(B,E2),
+	week_score2(C,E3),
+	S is E1 + E2 + E3.
 
 
     
