@@ -27,7 +27,6 @@ divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
 %Predicate that splits a list of permutations into 2 lists
 divide_list2([],[],[]).
 divide_list2([X],[X],[]).
-divide_list2([X,Y],[X],[Y]).
 divide_list2([X,Y|L],[X|L1],[Y|L2]) :-
     divide_list2(L,L1,L2).
 
