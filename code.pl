@@ -1,6 +1,9 @@
 %Open data file with facts.
 ?-consult('attends.pl').
 
+%Courses predicate that finds all exam lessons.
+%The predicate uses the setof to gather the exam lessons for all students.
+%The exam lessons are retrieved in a sorted way and they are unique.
 courses(Courses) :-
 	setof(Course, S^attends(S,Course),Courses).
 
@@ -12,25 +15,30 @@ k_permutation(K,L1,[X|T2]) :-
 	select(X,L1,L2),
 	k_permutation(K1,L2,T2).
 
-%Predicate that generates all possible permutations of 8 courses
+%Predicate that generates all possible permutations of courses.
+%The predicate computes the list with the courses from courses predicate,
+%finds its length and finally computes all permutations of the courses.
 permutations_list(Result) :-
     courses(Courses),
-    k_permutation(8, Courses, Result).
+    length(Courses,L),
+    k_permutation(L, Courses, Result).
 
-%Predicate that splits a list of permutations into 3 lists
+%Predicate that splits a single list into 3 separate lists.
 divide_list([],[],[],[]).
 divide_list([X],[X],[],[]).
 divide_list([X,Y],[X],[Y],[]).
 divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
     divide_list(L,L1,L2,L3).
 
-%Predicate that splits a list of permutations into 2 lists
+%Predicate that splits a list into 2 separate lists.
 divide_list2([],[],[]).
 divide_list2([X],[X],[]).
 divide_list2([X,Y|L],[X|L1],[Y|L2]) :-
     divide_list2(L,L1,L2).
 
-%Predicate schedule
+%Schedule predicate that builds all possible exam schedules.
+%The predicate fetches each permutation from the permutations_list predicate
+%and the divides the list to 3 lists, one for each week.
 schedule(A, B, C) :-
     permutations_list(Permutations),
     divide_list(Permutations, A, B, C).
@@ -86,15 +94,6 @@ find_max_score(S) :-
 	find_min_error(E),
 	setof(S,A^B^C^(minimal_schedule_errors(A,B,C,E),score_schedule(A,B,C,S)),Scores),
 	reverse(Scores,[S|_]).
-
-%Final predicate that calculates the exam schedule that has the minimum error and the maximum score.
-%First, it finds the minimum possible error and maximum score and then finds the schedules that have
-%that minimum error and maximum score.
-maximum_score_schedule(A,B,C,E,S) :-
-	find_min_error(E),
-	find_max_score(S),
-	minimal_schedule_errors(A,B,C,E),
-	score_schedule(A,B,C,S).
 
 %Auxiliary predicate that checks which lessons student S is attending in a week with 3 lessons and calculates the score.
 %First it finds all the students that attend lesson in X days with the help of findall , and then it calculates the score based on some criterias.
@@ -167,8 +166,11 @@ score_schedule(A,B,C,S) :-
 	week_score2(C,E3),
 	S is E1 + E2 + E3.
 
-
-    
-
-
-
+%Final predicate that calculates the exam schedule that has the minimum error and the maximum score.
+%First, it finds the minimum possible error and maximum score and then finds the schedules that have
+%that minimum error and maximum score.
+maximum_score_schedule(A,B,C,E,S) :-
+	find_min_error(E),
+	find_max_score(S),
+	minimal_schedule_errors(A,B,C,E),
+	score_schedule(A,B,C,S).
