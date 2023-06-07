@@ -157,7 +157,7 @@ week_score(A,E):-
 %Auxiliary predicate that divides the list with the lessons to 2 sublists with one element each
 %and then turns the list to variables.
 week_score2(A,E):-
-	divide_list2(A,A1,A2),	%Divide the list to 3 sublists
+	divide_list2(A,A1,A2),	%Divide the list to 2 sublists
 	list_to_var(A1,AA1),	%Turn the list with one element to a variable, representing a course
 	list_to_var(A2,AA2),	%Turn the list with one element to a variable, representing a course
 	score_calculator2(AA1,AA2,E).	%Score the week with two courses
