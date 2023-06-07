@@ -1,3 +1,8 @@
+%------------------------STUDENTS--------------------------
+%Ατματζίδης Γεώργιος ΑΕΜ:3908
+%Λιτσίδης Δημήτριος AEM:3930
+%Καραχούς Χαλιδήν AEM:3869
+
 %Open data file with facts.
 ?-consult('attends.pl').
 
@@ -19,29 +24,29 @@ k_permutation(K,L1,[X|T2]) :-
 %The predicate computes the list with the courses from courses predicate,
 %finds its length and finally computes all permutations of the courses.
 permutations_list(Result) :-
-    courses(Courses),
-    length(Courses,L),
-    k_permutation(L, Courses, Result).
+    courses(Courses),	%Find all courses and store them in courses list
+    length(Courses,L),	%FInd the length L of the course list
+    k_permutation(L, Courses, Result).	%Produce all permutations of the course list
 
 %Predicate that splits a single list into 3 separate lists.
-divide_list([],[],[],[]).
-divide_list([X],[X],[],[]).
-divide_list([X,Y],[X],[Y],[]).
-divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :-
-    divide_list(L,L1,L2,L3).
+divide_list([],[],[],[]).	%If the list is empty, return three empty lists
+divide_list([X],[X],[],[]).	%If the list has one element, put the element in the first list and return other 2 lists
+divide_list([X,Y],[X],[Y],[]).	%If the list has two elements, put the elements in the first and second list and return one empty
+divide_list([X,Y,Z|L],[X|L1],[Y|L2],[Z|L3]) :- %If the list has more than 2 elements 
+    divide_list(L,L1,L2,L3).	%then divide their heads and recursively call for their tails
 
 %Predicate that splits a list into 2 separate lists.
-divide_list2([],[],[]).
-divide_list2([X],[X],[]).
-divide_list2([X,Y|L],[X|L1],[Y|L2]) :-
-    divide_list2(L,L1,L2).
+divide_list2([],[],[]).	%If the list is empty, return two empty lists
+divide_list2([X],[X],[]).	%If the list has one element, put the element in the first list and return one more empty list
+divide_list2([X,Y|L],[X|L1],[Y|L2]) :- %If the list has more than 1 elements 
+    divide_list2(L,L1,L2).	%then divide their heads and recursively call for their tails
 
 %Schedule predicate that builds all possible exam schedules.
 %The predicate fetches each permutation from the permutations_list predicate
 %and the divides the list to 3 lists, one for each week.
 schedule(A, B, C) :-
-    permutations_list(Permutations),
-    divide_list(Permutations, A, B, C).
+    permutations_list(Permutations),	%Produce a new course schedule
+    divide_list(Permutations, A, B, C).	%Divide the list with exams to three list of each week
 
 %Predicate that turns a list with one element to a variable.
 %Fails if list has more than one element.
@@ -51,49 +56,48 @@ list_to_var([H],H).
 %The predicate divides the list with the lessons to 3 sublists with one element each
 %and then turns the list to variables.
 %In the end checks if student attends all lessons in the week.
-check_student(S,W) :-
-	divide_list(W,L1,L2,L3),
-	list_to_var(L1,E1),
-	list_to_var(L2,E2),
-	list_to_var(L3,E3),
-	attends(S,E1),
-	attends(S,E2),
-	attends(S,E3).
+check_student_error(S,W) :-
+	divide_list(W,L1,L2,L3),	%Divide the week with three courses to three lists with one element
+	list_to_var(L1,E1),	%Turn the list with one element to a variable, representing a course
+	list_to_var(L2,E2),	%Turn the list with one element to a variable, representing a course
+	list_to_var(L3,E3),	%Turn the list with one element to a variable, representing a course
+	attends(S,E1),	%Check if student S attends course E1
+	attends(S,E2),	%Check if student S attends course E2
+	attends(S,E3).	%Check if student S attends course E3
 
 %Auxiliary predicate that counts the number E of students that are dissatisfied with week W.
 %Computes the number of student that attending all lessons in given week.
-check_week(W,E) :-
-	findall(S, (check_student(S,W)),Students),
-	length(Students,E).
+find_week_error(W,E) :-
+	findall(S, (check_student_error(S,W)),Students),	%Find all dissatisfied students and store them in Students list
+	length(Students,E).	%Find the number of dissatisfied students
 
 %Predicate that computes the error in given schedule A,B,C.
 %Computes the total number of students that attend more than two lessons in a week.
 schedule_errors(A,B,C,E) :-
-    schedule(A,B,C),
-	check_week(A,E1),
-	check_week(B,E2),
-	check_week(C,E3),
-	E is E1 + E2 + E3.
+    schedule(A,B,C),	%Produce the schedule
+	find_week_error(A,E1),	%Find error in first week
+	find_week_error(B,E2),	%Find error in second week
+	find_week_error(C,E3),	%Find error in third week
+	E is E1 + E2 + E3.	%Sum up all errors
 
-%Predicate to find the minimal error of all schedules
+%Predicate to find the minimal error of all schedules.
+%With the use of setof the predicate finds all schedules and stores them in a list in a sorted way by the error.
+%In the end, it keeps the error from the first element of the list(which means the minimal error)-through unification.
 minimal_error(E) :-
-    setof(Error-A-B-C, schedule_errors(A, B, C, Error), List),
-    List=[E-A-B-C|_].
+    setof(Error-A-B-C, schedule_errors(A, B, C, Error), List),	%Produce each schedule and find its error and store them in List list in a sorted way
+    List=[E-A-B-C|_].	%Keep the minimal error 
 
-%Predicate that finds the schedules with minimal error
+%Predicate that finds the schedules with minimal error.
+%Because there may be multiple schedules with minimal error, the predicate finds all schedules with the minimal error. 
 minimal_schedule_errors(A, B, C, E) :-
-    minimal_error(E),
-    schedule_errors(A, B, C, E).
-
-%Predicate that finds the minimum possible error E through minimal_schedule_errors predicate.
-find_min_error(E) :-
-	minimal_schedule_errors(_,_,_,E),!.
+    minimal_error(E),	%Find the minimal error E
+    schedule_errors(A, B, C, E).	%Produce all schedules with the given error E
 
 %Predicate that finds the maximum possible score between exams that have the minimum error.
 find_max_score(S) :-
-	find_min_error(E),
-	setof(S,A^B^C^(minimal_schedule_errors(A,B,C,E),score_schedule(A,B,C,S)),Scores),
-	reverse(Scores,[S|_]).
+	minimal_error(E),	%Find the minimal error E
+	setof(S,A^B^C^(minimal_schedule_errors(A,B,C,E),score_schedule(A,B,C,S)),Scores),	%Score each schedule and store the schedule with the error and the score in Scores list
+	reverse(Scores,[S|_]).	%Reverse the list to get the maximal score and through unification keep only the score S
 
 %Auxiliary predicate that checks which lessons student S is attending in a week with 3 lessons and calculates the score.
 %First it finds all the students that attend lesson in X days with the help of findall , and then it calculates the score based on some criterias.
@@ -123,7 +127,7 @@ score_calculator(A,B,C,SCORE):-
 	length(Students7,E7),
 
 
-	SCORE is E0+E1+(E2*3)-(7*E3)+0*E4+(E5+E6+E7)*7.
+	SCORE is E0+E1+(E2*3)-(7*E3)+0*E4+(E5+E6+E7)*7.	%Calculate the final score based on given criteria weights and the number of students in each criteria
 
 %Auxiliary predicate that checks which lessons student S is attending in a week with 2 lessons and calculates the score.
 score_calculator2(A,B,SCORE):-
@@ -136,41 +140,42 @@ score_calculator2(A,B,SCORE):-
 	findall(S,(attends(S,B),not(attends(S,A))),Students2),	%Friday +7
 	length(Students2,E2),
 
-	SCORE is E+(E1+E2)*7.
+	SCORE is E+(E1+E2)*7.	%Calculate the final score based on given criteria weights and the number of students in each criteria
 
 
 %Auxiliary predicate that divides the list with the lessons to 3 sublists with one element each
 %and then turns the list to variables.
+%Finally score the schedule and return the score through unification in variable E.
 week_score(A,E):-
-	divide_list(A,A1,A2,A3),
-	list_to_var(A1,AA1),
-	list_to_var(A2,AA2),
-	list_to_var(A3,AA3),
-	score_calculator(AA1,AA2,AA3,E).
+	divide_list(A,A1,A2,A3),	%Divide the list to 3 sublists
+	list_to_var(A1,AA1),	%Turn the list with one element to a variable, representing a course
+	list_to_var(A2,AA2),	%Turn the list with one element to a variable, representing a course
+	list_to_var(A3,AA3),	%Turn the list with one element to a variable, representing a course
+	score_calculator(AA1,AA2,AA3,E).	%Score the week with three courses
 
 
 %Auxiliary predicate that divides the list with the lessons to 2 sublists with one element each
 %and then turns the list to variables.
 week_score2(A,E):-
-	divide_list2(A,A1,A2),
-	list_to_var(A1,AA1),
-	list_to_var(A2,AA2),
-	score_calculator2(AA1,AA2,E).
+	divide_list2(A,A1,A2),	%Divide the list to 3 sublists
+	list_to_var(A1,AA1),	%Turn the list with one element to a variable, representing a course
+	list_to_var(A2,AA2),	%Turn the list with one element to a variable, representing a course
+	score_calculator2(AA1,AA2,E).	%Score the week with two courses
 
 
 %Predicate that calculates the schedule score based on the lessons that student attends.
 %First it calculates the scores for each week and then adds them up.
 score_schedule(A,B,C,S) :-
-	week_score(A,E1),
-	week_score(B,E2),
-	week_score2(C,E3),
-	S is E1 + E2 + E3.
+	week_score(A,E1),	%Find score for the first week
+	week_score(B,E2),	%Find score for the second week
+	week_score2(C,E3),	%Find score for the third week
+	S is E1 + E2 + E3.	%Sum up all scores.
 
 %Final predicate that calculates the exam schedule that has the minimum error and the maximum score.
 %First, it finds the minimum possible error and maximum score and then finds the schedules that have
 %that minimum error and maximum score.
 maximum_score_schedule(A,B,C,E,S) :-
-	find_min_error(E),
-	find_max_score(S),
-	minimal_schedule_errors(A,B,C,E),
-	score_schedule(A,B,C,S).
+	minimal_error(E),	%Find minimum error E.
+	find_max_score(S),	%Find maximum possible score S with the minimum error E.
+	minimal_schedule_errors(A,B,C,E),	%Produce the exam schedules with the minimum error E.
+	score_schedule(A,B,C,S). %Finally, score those exam schedules.
