@@ -13,19 +13,19 @@ courses(Courses) :-
 	setof(Course, S^attends(S,Course),Courses).
 
 %Predicate that returns all possible orders of k elements.
-k_permutation(0,_,[]).
+k_permutation(0,_,[]).    %If K is 0, the permutation list is empty.
 k_permutation(K,L1,[X|T2]) :-
-	K > 0,
-	K1 is K - 1,
-	select(X,L1,L2),
-	k_permutation(K1,L2,T2).
+	K > 0,           %Ensure K is greater than 0.
+	K1 is K - 1,     %Decrement K by 1.
+	select(X,L1,L2), %Selects an element X from the list L1, resulting in a new list L2 that contains all elements of L1 except the selected element X.
+	k_permutation(K1,L2,T2).   %Recursively generate a permutation list T2 with K1 elements from L2.
 
 %Predicate that generates all possible permutations of courses.
 %The predicate computes the list with the courses from courses predicate,
 %finds its length and finally computes all permutations of the courses.
 permutations_list(Result) :-
     courses(Courses),	%Find all courses and store them in courses list
-    length(Courses,L),	%FInd the length L of the course list
+    length(Courses,L),	%Find the length L of the course list
     k_permutation(L, Courses, Result).	%Produce all permutations of the course list
 
 %Predicate that splits a single list into 3 separate lists.
