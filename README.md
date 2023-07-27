@@ -1,5 +1,4 @@
 # Exam-Scheduling
-An exam scheduling program written in SWI-Prolog.
 ## Overview
 An exam scheduling program written in SWI-Prolog. <br />
 The scheduling is optimal in terms of facilitation for students. <br />
